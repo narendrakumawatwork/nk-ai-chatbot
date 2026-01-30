@@ -143,12 +143,11 @@ function nk_chat_response_handler() {
     if (!empty($found_products)) {
         $product_context = "I found these relevant products in our store:\n";
         foreach ($found_products as $p) {
-            // Include Description for AI to use
             $product_context .= "- {$p['title']} ({$p['price']}): {$p['full_desc']}. Link: {$p['link']}\n";
         }
-        $product_context .= "\nUSER REQUEST: 'thoda modify karake do'. \nINSTRUCTION: Summarize the product details above for the user in a helpful way, highlighting benefits (mg, usage, etc) found in the description. Don't just list them.";
+        $product_context .= "\nINSTRUCTION: Briefly explain the benefits of 1-2 relevant products at the end of your response as a recommendation for the user's research goal or query.";
     } else {
-        $product_context = "No direct product matches found in our store for this specific query. If the user asked for a specific product, explain what it is generally, but politely state we don't currently have it in stock.";
+        $product_context = "No direct product matches found. If the user asked about a specific research goal (like weight loss or injury), explain that while we have many products, nothing matched those specific terms exactly in the current search. Encourage them to browse the full catalog.";
     }
 
     // 3. Strict System Prompt (LoopAI Style) with Inventory Context
@@ -256,13 +255,15 @@ function nk_chat_response_handler() {
 function nk_search_products($query_text) {
     if (empty($query_text)) return [];
 
-    // 1. Keyword Extraction (Simple Stop-word removal)
+    // 1. Keyword Extraction (Balanced Stop-word removal)
     $stop_words = [
         'what', 'is', 'the', 'best', 'for', 'do', 'you', 'have', 'i', 'need', 
         'want', 'to', 'buy', 'get', 'can', 'help', 'me', 'find', 'show', 
         'tell', 'about', 'recommend', 'suggestion', 'suggestions', 'are', 'in', 'stock',
-        'available', 'price', 'cost', 'how', 'much', 'does', 'work', 'please', 'give', 'details'
+        'available', 'price', 'cost', 'how', 'much', 'does', 'work', 'please', 'give', 'details',
+        'recommendation'
     ];
+    // Note: Words like "weight", "loss", "fat", "muscle" are NOT stop words.
 
     // Clean up input
     $clean_term = strtolower(strip_tags($query_text));
@@ -273,14 +274,15 @@ function nk_search_products($query_text) {
     if (stripos($clean_term, 'catalog') !== false || 
         stripos($clean_term, 'all product') !== false || 
         stripos($clean_term, 'full list') !== false ||
-        stripos($clean_term, 'all peptide') !== false) {
+        stripos($clean_term, 'all peptide') !== false ||
+        stripos($clean_term, 'shop') !== false) {
         $is_catalog_request = true;
     }
 
     $args = [
         'post_type'      => 'product',
         'post_status'    => 'publish',
-        'posts_per_page' => $is_catalog_request ? 6 : 3, // Show more for catalog
+        'posts_per_page' => $is_catalog_request ? 6 : 2, // Recommend 2 products as requested
         'orderby'        => $is_catalog_request ? 'date' : 'relevance',
         'order'          => 'DESC'
     ];
