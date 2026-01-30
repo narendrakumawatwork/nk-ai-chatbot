@@ -1,0 +1,488 @@
+/* 
+ * NK AI Chatbot Styles 
+ * Design inspired by The Loopway (Clean, Modern, Purple Aesthetic)
+ */
+
+:root {
+  --nk-primary: #db8a73;
+  --nk-primary-dark: #c47b67;
+  --nk-bg-white: #ffffff;
+  --nk-bg-gray: #f9fafb;
+  --nk-text-main: #111827;
+  --nk-text-muted: #6b7280;
+  --nk-border: #e5e7eb;
+  --nk-font-family: "Inter", sans-serif;
+  --nk-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --nk-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --nk-radius-lg: 16px;
+  --nk-radius-xl: 24px;
+}
+
+/* --- Container & Toggle --- */
+#nk-chatbot-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  font-family: var(--nk-font-family);
+}
+
+#nk-chatbot-toggle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--nk-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--nk-shadow-lg);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#nk-chatbot-toggle:hover {
+  background-color: var(--nk-primary-dark);
+  transform: scale(1.05);
+}
+
+/* --- Chat Window --- */
+#nk-chat-window {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  width: 400px;
+  height: 600px; /* Default height */
+  max-height: 80vh;
+  background: var(--nk-bg-white);
+  border-radius: var(--nk-radius-lg);
+  box-shadow: var(--nk-shadow-2xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transform-origin: bottom right;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--nk-border);
+}
+
+/* Open State */
+#nk-chatbot-container.nk-chatbot-open #nk-chat-window {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* --- Theater Mode (Deep Explore) --- */
+#nk-chatbot-container.nk-mode-theater {
+  /* Container takes full screen */
+  bottom: 0;
+  right: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Dimmed background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+#nk-chatbot-container.nk-mode-theater #nk-chat-window {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  width: 900px; /* Wide theater mode */
+  height: 85vh;
+  max-height: none;
+  transform: none;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    var(--nk-shadow-2xl);
+}
+
+#nk-chatbot-container.nk-mode-theater #nk-chatbot-toggle {
+  display: none; /* Hide toggle in theater mode */
+}
+
+/* --- Header --- */
+.nk-chat-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--nk-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--nk-bg-white);
+}
+
+.nk-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nk-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+#nk-reset-menu {
+    display: none !important;
+    padding: 8px;
+    margin-left: -8px;
+    color: var(--nk-text-main);
+}
+
+.nk-bot-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--nk-primary);
+  color: white;
+  border-radius: 8px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.nk-bot-name {
+  font-weight: 600;
+  color: var(--nk-text-main);
+  font-size: 16px;
+}
+
+.nk-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nk-header-actions button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--nk-text-muted);
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex !important; /* Ensure buttons stay flex for icon centering */
+  align-items: center;
+  justify-content: center;
+}
+
+#nk-reset-menu {
+    display: none !important; /* Managed by JS, but keeping hidden state */
+}
+
+.nk-header-actions button:hover {
+  background: var(--nk-bg-gray);
+  color: var(--nk-text-main);
+}
+
+/* --- Messages Area --- */
+#nk-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--nk-bg-gray);
+}
+
+/* Message Bubbles */
+.nk-message {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  animation: fadeIn 0.3s ease;
+}
+
+.nk-message-content {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.3; /* Tighter line spacing */
+}
+
+.nk-message-bot {
+  align-self: flex-start;
+}
+
+.nk-message-bot .nk-message-content {
+  background: var(--nk-bg-white);
+  color: var(--nk-text-main);
+  border: 1px solid var(--nk-border);
+  border-top-left-radius: 2px;
+}
+
+.nk-message-user {
+  align-self: flex-end;
+}
+
+.nk-message-user .nk-message-content {
+  background: var(--nk-primary);
+  color: white;
+  border-top-right-radius: 2px;
+}
+
+/* --- Quick Actions (Starter Tiles) --- */
+.nk-quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.nk-chip {
+    background: var(--nk-bg-white);
+    border: 1px solid var(--nk-border);
+    color: var(--nk-text-main);
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.nk-chip:hover {
+    border-color: var(--nk-primary);
+    color: var(--nk-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.nk-chip-icon {
+    font-size: 20px;
+}
+
+
+/* --- Suggestion Pills (Above Input) --- */
+.nk-chat-pills {
+  display: flex;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--nk-bg-white);
+  border-top: 1px solid var(--nk-border); /* Separator from messages */
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* Hide scrollbar for pills */
+.nk-chat-pills::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+}
+
+.nk-pill {
+  background: var(--nk-bg-gray);
+  border: 1px solid var(--nk-border);
+  color: var(--nk-text-main);
+  padding: 6px 12px;
+  border-radius: 999px; /* Pill shape */
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.nk-pill:hover {
+  background: var(--nk-primary);
+  color: white;
+  border-color: var(--nk-primary);
+}
+
+/* --- Input Area --- */
+.nk-chat-input-area {
+    padding: 12px 20px 20px 20px; /* Reduced top padding as pills are above */
+    background: var(--nk-bg-white);
+    /* border-top removed as pills handle it */
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+#nk-chat-input {
+    flex: 1;
+    border: 1px solid var(--nk-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: var(--nk-font-family);
+    background: var(--nk-bg-gray);
+    color: var(--nk-text-main);
+}
+
+#nk-chat-input:focus {
+    background: var(--nk-bg-white);
+    border-color: var(--nk-primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+#nk-chat-send {
+    background: var(--nk-primary);
+    color: white;
+    border: none;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+#nk-chat-send:hover {
+    background: var(--nk-primary-dark);
+}
+
+.nk-chat-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--nk-text-muted);
+    padding: 10px;
+    background: var(--nk-bg-white);
+    border-top: 1px solid #f3f4f6;
+}
+
+/* --- Product Cards (Enhanced Visibility) --- */
+.nk-product-carousel {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding: 8px 4px 20px 4px; /* Space for shadow */
+    width: 100%;
+    margin-top: 8px;
+}
+
+.nk-product-card {
+    min-width: 240px;
+    max-width: 240px;
+    background: var(--nk-bg-white);
+    border: 1px solid var(--nk-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.nk-product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: var(--nk-primary-dark); /* Subtle border change */
+}
+
+.nk-product-image {
+    width: 100%;
+    height: 160px;
+    object-fit: contain; /* Ensure product is seen fully */
+    background: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    padding: 12px;
+}
+
+.nk-product-details {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    background: white;
+}
+
+/* Updated Card Styles */
+.nk-product-title-link {
+    font-size: 15px;
+    font-weight: 700;
+    color: #000000; /* Black */
+    text-decoration: underline; /* Underlined */
+    line-height: 1.3;
+    margin-bottom: 4px;
+    display: block;
+}
+.nk-product-title-link:hover {
+    color: var(--nk-primary);
+}
+
+.nk-product-desc {
+    font-size: 13px;
+    color: var(--nk-text-muted);
+    line-height: 1.4;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limit visible lines */
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.nk-product-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--nk-primary);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.nk-product-btn {
+    margin-top: auto;
+    background: var(--nk-text-main);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.nk-product-btn:hover {
+    background: var(--nk-primary);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hide scrollbar for clean look */
+.nk-product-carousel::-webkit-scrollbar {
+  height: 6px;
+}
+.nk-product-carousel::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
