@@ -162,8 +162,28 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+  let isBotThinking = false;
+
+  function setLoadingState(isLoading) {
+      isBotThinking = isLoading;
+      if (isLoading) {
+          sendBtn.disabled = true;
+          input.disabled = true;
+          sendBtn.style.opacity = "0.5";
+          sendBtn.style.cursor = "not-allowed";
+      } else {
+          sendBtn.disabled = false;
+          input.disabled = false;
+          sendBtn.style.opacity = "1";
+          sendBtn.style.cursor = "pointer";
+          input.focus();
+      }
+  }
+
   // Send Message
   function sendMessage() {
+    if (isBotThinking) return; // Prevent double sending
+    
     const text = input.value.trim();
     if (!text) return;
 
@@ -239,12 +259,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Real AJAX Logic
     function handleBotResponse(userText, action = null) {
-        // Show Typing Indicator (Placeholder)
+        // Show Typing Indicator (Animated Dots)
         const loadingId = 'nk-loading-' + Date.now();
         const msgDiv = document.createElement('div');
         msgDiv.className = 'nk-message nk-message-bot';
         msgDiv.id = loadingId;
-        msgDiv.innerHTML = `<div class="nk-message-content">Typing...</div>`;
+        msgDiv.innerHTML = `<div class="nk-message-content">
+            <div class="nk-typing">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>`;
         messagesArea.appendChild(msgDiv);
         scrollToBottom();
 
@@ -270,6 +296,9 @@ document.addEventListener("DOMContentLoaded", () => {
              return;
         }
 
+        // Disable Input/Button
+        setLoadingState(true);
+
         fetch(nkChatbotConfig.ajaxUrl, {
             method: 'POST',
             body: formData
@@ -277,6 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(response => response.json())
         .then(data => {
             removeLoading(loadingId);
+            setLoadingState(false);
             
             if (data.success) {
                 const aiContent = data.data.content;
@@ -300,6 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(err => {
             console.error(err);
             removeLoading(loadingId);
+            setLoadingState(false);
             addBotMessage("Connection error. Please try again.");
         });
     }
