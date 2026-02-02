@@ -99,62 +99,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-    // Handle Quick Actions & Pills
+    // Handle Quick Actions & Pills (Dynamic Menu Logic)
     const triggerButtons = document.querySelectorAll('.nk-quick-actions .nk-chip, .nk-chat-pills .nk-pill');
     
     triggerButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const button = e.currentTarget;
-            const action = button.dataset.action;
+            const action = button.getAttribute('data-action');
+            const dynamicQuery = button.getAttribute('data-query');
+            const shouldSendImmediately = (button.getAttribute('data-send') === 'true');
             
-            let queryText = '';
-            
-            // Map Actions and Determine Send Mode
-            let shouldSendImmediately = false;
-
-            switch(action) {
-                // Main Tiles (Direct Send - Tailored for Clinical Peptides)
-                case 'find_products':
-                    queryText = 'Show me the full catalog of research peptides available at Clinical Peptides.';
-                    shouldSendImmediately = true;
-                    break;
-                case 'dosing':
-                    queryText = 'What are the proper reconstitution and storage protocols for your peptides?';
-                    shouldSendImmediately = true;
-                    break;
-                case 'protocols':
-                    queryText = 'What are the standard research guidelines for peptide handling and usage?';
-                    shouldSendImmediately = true;
-                    break;
-                case 'build_stack':
-                    queryText = 'Can you recommend synergistic peptide combinations for specific research goals?';
-                    shouldSendImmediately = true;
-                    break;
-
-                // Pills (Populate Input - Quick Helpers)
-                case 'product_info':
-                    queryText = 'Details on product purity and testing';
-                    break;
-                case 'dosing_help':
-                    queryText = 'How much bacteriostatic water should I use?';
-                    break;
-                case 'research_guide':
-                    queryText = "Where should I begin my peptide research?";
-                    break;
-                default:
-                    // Fallback using text
-                    queryText = button.innerText.trim();
-            }
+            // Priority: Dynamic Query > Text Label
+            let queryText = dynamicQuery || button.innerText.trim();
             
             if (shouldSendImmediately) {
-                // Direct Send for the 4 Main Tiles
+                // Direct Send (Tiles)
                 hasUserSentMessage = true;
                 updateInterfaceVisibility();
                 
                 addUserMessage(queryText);
                 handleBotResponse(queryText, action);
             } else {
-                 // Populate input for others (Pills)
+                 // Populate input (Pills)
                 input.value = queryText;
                 input.focus();
                 updateInterfaceVisibility();

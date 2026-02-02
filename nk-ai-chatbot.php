@@ -78,33 +78,60 @@ function nk_chatbot_render_widget() {
             <div id="nk-chat-messages">
                 <!-- Welcome Message -->
                 <div class="nk-message nk-message-bot">
-                    <div class="nk-message-content">Hello! I'm your research assistant. Ask me about peptides, protocols, or products.</div>
+                    <div class="nk-message-content"><?php echo esc_html(get_option('nk_chatbot_welcome_msg', "Hello! I'm your research assistant. Ask me about peptides, protocols, or products.")); ?></div>
                 </div>
-                
                 <!-- Quick Actions / Starter Chips -->
                 <div class="nk-quick-actions">
-                    <button class="nk-chip" data-action="find_products">
-                        <span class="nk-chip-icon">🔍</span> Find Products
+                    <?php 
+                    // Retrieve V6 Tiles (JSON)
+                    $tiles_json = get_option('nk_chatbot_tiles_v6');
+                    $tiles = json_decode($tiles_json, true);
+                    
+                    if (!is_array($tiles)) {
+                        $tiles = [
+                            ['icon' => '🔍', 'label' => 'Find Products', 'query' => 'Show me the full catalog of research peptides available at Clinical Peptides.'],
+                            ['icon' => '💊', 'label' => 'Dosing', 'query' => 'What are the proper reconstitution and storage protocols for your peptides?'],
+                            ['icon' => '📋', 'label' => 'Protocols', 'query' => 'What are the standard research guidelines for peptide handling and usage?'],
+                            ['icon' => '🧬', 'label' => 'Build Stack', 'query' => 'Can you recommend synergistic peptide combinations for specific research goals?']
+                        ];
+                    }
+                    
+                    foreach($tiles as $tile): 
+                        $label = isset($tile['label']) ? $tile['label'] : '';
+                        $query = isset($tile['query']) ? $tile['query'] : '';
+                        $icon  = isset($tile['icon'])  ? $tile['icon']  : '';
+                    ?>
+                    <button class="nk-chip" data-action="dynamic" data-query="<?php echo esc_attr($query); ?>" data-send="true">
+                        <span class="nk-chip-icon"><?php echo esc_html($icon); ?></span> <?php echo esc_html($label); ?>
                     </button>
-                    <button class="nk-chip" data-action="dosing">
-                        <span class="nk-chip-icon">💊</span> Dosing
-                    </button>
-                    <button class="nk-chip" data-action="protocols">
-                        <span class="nk-chip-icon">📋</span> Protocols
-                    </button>
-                     <button class="nk-chip" data-action="build_stack">
-                        <span class="nk-chip-icon">🧬</span> Build Stack
-                    </button>
+                    <?php endforeach; ?>
                 </div>
             </div>
-
             <!-- Suggestion Pills -->
             <div class="nk-chat-pills">
-                <button class="nk-pill" data-action="product_info">Product Info</button>
-                <button class="nk-pill" data-action="dosing_help">Dosing Help</button>
-                <button class="nk-pill" data-action="research_guide">Research Guide</button>
+                <?php 
+                // Retrieve V6 Pills (JSON)
+                $pills_json = get_option('nk_chatbot_pills_v6');
+                $pills = json_decode($pills_json, true);
+                
+                // Only fallback if never saved
+                if (!is_array($pills)) {
+                   $pills = [
+                        ['label' => 'Product Info', 'query' => 'Details on product purity and testing'],
+                        ['label' => 'Dosing Help', 'query' => 'How much bacteriostatic water should I use?'],
+                        ['label' => 'Research Guide', 'query' => 'Where should I begin my peptide research?']
+                    ];
+                }
+                
+                foreach($pills as $pill): 
+                    $label = isset($pill['label']) ? $pill['label'] : '';
+                    $query = isset($pill['query']) ? $pill['query'] : '';
+                ?>
+                <button class="nk-pill" data-action="dynamic" data-query="<?php echo esc_attr($query); ?>" data-send="false">
+                    <?php echo esc_html($label); ?>
+                </button>
+                <?php endforeach; ?>
             </div>
-
             <!-- Input Area -->
             <div class="nk-chat-input-area">
                 <input type="text" id="nk-chat-input" placeholder="Message Clinical Assistant..." />
