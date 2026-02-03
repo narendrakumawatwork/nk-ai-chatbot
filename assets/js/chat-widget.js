@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // 3. Handle Pills
+      let isPillsVisible = false;
       if (pillsContainer) {
           if (hasUserSentMessage) {
               pillsContainer.style.display = 'none';
@@ -47,6 +48,17 @@ document.addEventListener("DOMContentLoaded", () => {
               pillsContainer.style.display = 'none';
           } else {
               pillsContainer.style.display = 'flex';
+              isPillsVisible = true;
+          }
+      }
+      
+      // 4. Handle Input Border (Ensure separator exists if pills are gone)
+      const inputArea = document.querySelector('.nk-chat-input-area');
+      if (inputArea) {
+          if (isPillsVisible) {
+              inputArea.classList.add('nk-pills-visible');
+          } else {
+              inputArea.classList.remove('nk-pills-visible');
           }
       }
   }
@@ -169,6 +181,9 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Real-time visibility check
   input.addEventListener("input", updateInterfaceVisibility);
+  
+  // Initial Check on Load
+  updateInterfaceVisibility();
 
   // UI Helpers
   function addUserMessage(text) {

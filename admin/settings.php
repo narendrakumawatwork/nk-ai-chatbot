@@ -58,6 +58,10 @@ function nk_chatbot_handle_file_upload() {
         if (isset($_POST['nk_chatbot_welcome_msg'])) {
             update_option('nk_chatbot_welcome_msg', sanitize_text_field(wp_unslash($_POST['nk_chatbot_welcome_msg'])));
         }
+        
+        // Save Visibility Settings (Checkboxes)
+        update_option('nk_chatbot_hide_tiles', isset($_POST['nk_chatbot_hide_tiles']) ? 1 : 0);
+        update_option('nk_chatbot_hide_pills', isset($_POST['nk_chatbot_hide_pills']) ? 1 : 0);
 
         // 2. Save Arrays (Tiles & Pills) - V6 Keys (JSON Encoded for Max Safety)
         if (isset($_POST['nk_chatbot_tiles']) && is_array($_POST['nk_chatbot_tiles'])) {
@@ -223,6 +227,24 @@ function nk_chatbot_render_admin_page() {
                         <h2 style="margin: 0;">Home Screen Menu Customization</h2>
                         <p class="description">Edit the 4 large tiles and 3 suggestion pills that appear when the chat starts.</p>
                     </th>
+                </tr>
+
+                <tr valign="top">
+                    <th scope="row">Visibility Settings</th>
+                    <td>
+                        <fieldset>
+                            <label for="nk_chatbot_hide_tiles">
+                                <input name="nk_chatbot_hide_tiles" type="checkbox" id="nk_chatbot_hide_tiles" value="1" <?php checked(1, get_option('nk_chatbot_hide_tiles', 0)); ?> />
+                                Hide Quick Action Tiles
+                            </label>
+                            <br>
+                            <label for="nk_chatbot_hide_pills">
+                                <input name="nk_chatbot_hide_pills" type="checkbox" id="nk_chatbot_hide_pills" value="1" <?php checked(1, get_option('nk_chatbot_hide_pills', 0)); ?> />
+                                Hide Suggestion Pills
+                            </label>
+                            <p class="description">Check these boxes to hide the respective sections from the chatbot.</p>
+                        </fieldset>
+                    </td>
                 </tr>
 
                 <?php 

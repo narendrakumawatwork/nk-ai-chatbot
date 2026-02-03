@@ -314,10 +314,15 @@
 .nk-chat-input-area {
     padding: 12px 20px 20px 20px; /* Reduced top padding as pills are above */
     background: var(--nk-bg-white);
-    /* border-top removed as pills handle it */
+    border-top: 1px solid var(--nk-border); /* Default: Separator line */
     display: flex;
     gap: 12px;
     align-items: center;
+}
+
+/* If pills are visible, they handle the border, so hide this one to avoid double lines */
+.nk-chat-input-area.nk-pills-visible {
+    border-top: none;
 }
 
 #nk-chat-input {

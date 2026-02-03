@@ -81,6 +81,7 @@ function nk_chatbot_render_widget() {
                     <div class="nk-message-content"><?php echo esc_html(get_option('nk_chatbot_welcome_msg', "Hello! I'm your research assistant. Ask me about peptides, protocols, or products.")); ?></div>
                 </div>
                 <!-- Quick Actions / Starter Chips -->
+                <?php if (!get_option('nk_chatbot_hide_tiles', 0)): ?>
                 <div class="nk-quick-actions">
                     <?php 
                     // Retrieve V6 Tiles (JSON)
@@ -106,8 +107,10 @@ function nk_chatbot_render_widget() {
                     </button>
                     <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
             </div>
             <!-- Suggestion Pills -->
+            <?php if (!get_option('nk_chatbot_hide_pills', 0)): ?>
             <div class="nk-chat-pills">
                 <?php 
                 // Retrieve V6 Pills (JSON)
@@ -132,6 +135,7 @@ function nk_chatbot_render_widget() {
                 </button>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
             <!-- Input Area -->
             <div class="nk-chat-input-area">
                 <input type="text" id="nk-chat-input" placeholder="Message Clinical Assistant..." />
