@@ -90,15 +90,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Toggle Chat
   function toggleChat() {
-    container.classList.toggle("nk-chatbot-open");
+    if (container) container.classList.toggle("nk-chatbot-open");
   }
 
-  toggleBtn.addEventListener("click", toggleChat);
-  closeBtn.addEventListener("click", () => {
-    container.classList.remove("nk-chatbot-open");
-    // Also exit theater mode on close
-    container.classList.remove("nk-mode-theater");
-  });
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", toggleChat);
+  }
+  
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      if (container) {
+          container.classList.remove("nk-chatbot-open");
+          // Also exit theater mode on close
+          container.classList.remove("nk-mode-theater");
+      }
+    });
+  }
 
   // Toggle Theater Mode (Deep Explore)
   if (theaterBtn) {

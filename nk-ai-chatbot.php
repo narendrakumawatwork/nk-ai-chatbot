@@ -37,8 +37,124 @@ add_action('wp_enqueue_scripts', 'nk_chatbot_enqueue_assets');
 // Include Admin Settings
 require_once NK_CHATBOT_PATH . 'admin/settings.php';
 
+/**
+ * Reusable Chat Window HTML
+ */
+function nk_chatbot_render_window_html() {
+    ?>
+    <!-- Chat Window (Main Widget) -->
+    <div id="nk-chat-window">
+        <!-- Header -->
+        <div class="nk-chat-header">
+            <div class="nk-header-info">
+                <!-- Reset/Back Button (Left Side) -->
+                <button id="nk-reset-menu" title="Go Back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </button>
+                <span class="nk-bot-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10z"></path><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                </span>
+                <span class="nk-bot-name">Clinical Assistant <small>(Beta)</small></span>
+            </div>
+            <div class="nk-header-actions">
+                <!-- Theater Mode Toggle -->
+                <button id="nk-theater-toggle" title="Deep Explore / Theater Mode">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                </button>
+                <!-- Close Button -->
+                <button id="nk-chat-close" title="Close Chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="nk-chat-messages">
+            <!-- Welcome Message -->
+            <div class="nk-message nk-message-bot">
+                <div class="nk-message-content"><?php echo esc_html(get_option('nk_chatbot_welcome_msg', "Hello! I'm your research assistant. Ask me about peptides, protocols, or products.")); ?></div>
+            </div>
+            <!-- Quick Actions / Starter Chips -->
+            <?php if (!get_option('nk_chatbot_hide_tiles', 0)): ?>
+            <div class="nk-quick-actions">
+                <?php 
+                // Retrieve V6 Tiles (JSON)
+                $tiles_json = get_option('nk_chatbot_tiles_v6');
+                $tiles = json_decode($tiles_json, true);
+                
+                if (!is_array($tiles)) {
+                    $tiles = [
+                        ['icon' => '🔍', 'label' => 'Find Products', 'query' => 'Show me the full catalog of research peptides available at Clinical Peptides.'],
+                        ['icon' => '💊', 'label' => 'Dosing', 'query' => 'What are the proper reconstitution and storage protocols for your peptides?'],
+                        ['icon' => '📋', 'label' => 'Protocols', 'query' => 'What are the standard research guidelines for peptide handling and usage?'],
+                        ['icon' => '🧬', 'label' => 'Build Stack', 'query' => 'Can you recommend synergistic peptide combinations for specific research goals?']
+                    ];
+                }
+                
+                foreach($tiles as $tile): 
+                    $label = isset($tile['label']) ? $tile['label'] : '';
+                    $query = isset($tile['query']) ? $tile['query'] : '';
+                    $icon  = isset($tile['icon'])  ? $tile['icon']  : '';
+                ?>
+                <button class="nk-chip" data-action="dynamic" data-query="<?php echo esc_attr($query); ?>" data-send="true">
+                    <span class="nk-chip-icon"><?php echo esc_html($icon); ?></span> <?php echo esc_html($label); ?>
+                </button>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        <!-- Suggestion Pills -->
+        <?php if (!get_option('nk_chatbot_hide_pills', 0)): ?>
+        <div class="nk-chat-pills">
+            <?php 
+            // Retrieve V6 Pills (JSON)
+            $pills_json = get_option('nk_chatbot_pills_v6');
+            $pills = json_decode($pills_json, true);
+            
+            // Only fallback if never saved
+            if (!is_array($pills)) {
+               $pills = [
+                    ['label' => 'Product Info', 'query' => 'Details on product purity and testing'],
+                    ['label' => 'Dosing Help', 'query' => 'How much bacteriostatic water should I use?'],
+                    ['label' => 'Research Guide', 'query' => 'Where should I begin my peptide research?']
+                ];
+            }
+            
+            foreach($pills as $pill): 
+                $label = isset($pill['label']) ? $pill['label'] : '';
+                $query = isset($pill['query']) ? $pill['query'] : '';
+            ?>
+            <button class="nk-pill" data-action="dynamic" data-query="<?php echo esc_attr($query); ?>" data-send="false">
+                <?php echo esc_html($label); ?>
+            </button>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        <!-- Input Area -->
+        <div class="nk-chat-input-area">
+            <input type="text" id="nk-chat-input" placeholder="Message Clinical Assistant..." />
+            <button id="nk-chat-send">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+        
+        <!-- Footer Branding (Removed as requested) -->
+        <div class="nk-chat-footer"><strong>Note-</strong> This is a beta version. Responses may change.</div>
+    </div>
+    <?php
+}
+
+// Global flag to track if shortcode is used
+$nk_chatbot_shortcode_used = false;
+
 // Add Chat Container to Footer
 function nk_chatbot_render_widget() {
+    global $nk_chatbot_shortcode_used;
+    
+    // If shortcode is used on this page, don't show the floating widget
+    if ($nk_chatbot_shortcode_used) {
+        return;
+    }
     ?>
     <div id="nk-chatbot-container" class="nk-chatbot-closed">
         <!-- Floating Toggle Button -->
@@ -48,109 +164,26 @@ function nk_chatbot_render_widget() {
             </svg>
         </button>
 
-        <!-- Chat Window (Main Widget) -->
-        <div id="nk-chat-window">
-            <!-- Header -->
-            <div class="nk-chat-header">
-                <div class="nk-header-info">
-                    <!-- Reset/Back Button (Left Side) -->
-                    <button id="nk-reset-menu" title="Go Back">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                    </button>
-                    <span class="nk-bot-avatar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10z"></path><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-                    </span>
-                    <span class="nk-bot-name">Clinical Assistant <small>(Beta)</small></span>
-                </div>
-                <div class="nk-header-actions">
-                    <!-- Theater Mode Toggle -->
-                    <button id="nk-theater-toggle" title="Deep Explore / Theater Mode">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                    </button>
-                    <!-- Close Button -->
-                    <button id="nk-chat-close" title="Close Chat">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Messages Area -->
-            <div id="nk-chat-messages">
-                <!-- Welcome Message -->
-                <div class="nk-message nk-message-bot">
-                    <div class="nk-message-content"><?php echo esc_html(get_option('nk_chatbot_welcome_msg', "Hello! I'm your research assistant. Ask me about peptides, protocols, or products.")); ?></div>
-                </div>
-                <!-- Quick Actions / Starter Chips -->
-                <?php if (!get_option('nk_chatbot_hide_tiles', 0)): ?>
-                <div class="nk-quick-actions">
-                    <?php 
-                    // Retrieve V6 Tiles (JSON)
-                    $tiles_json = get_option('nk_chatbot_tiles_v6');
-                    $tiles = json_decode($tiles_json, true);
-                    
-                    if (!is_array($tiles)) {
-                        $tiles = [
-                            ['icon' => '🔍', 'label' => 'Find Products', 'query' => 'Show me the full catalog of research peptides available at Clinical Peptides.'],
-                            ['icon' => '💊', 'label' => 'Dosing', 'query' => 'What are the proper reconstitution and storage protocols for your peptides?'],
-                            ['icon' => '📋', 'label' => 'Protocols', 'query' => 'What are the standard research guidelines for peptide handling and usage?'],
-                            ['icon' => '🧬', 'label' => 'Build Stack', 'query' => 'Can you recommend synergistic peptide combinations for specific research goals?']
-                        ];
-                    }
-                    
-                    foreach($tiles as $tile): 
-                        $label = isset($tile['label']) ? $tile['label'] : '';
-                        $query = isset($tile['query']) ? $tile['query'] : '';
-                        $icon  = isset($tile['icon'])  ? $tile['icon']  : '';
-                    ?>
-                    <button class="nk-chip" data-action="dynamic" data-query="<?php echo esc_attr($query); ?>" data-send="true">
-                        <span class="nk-chip-icon"><?php echo esc_html($icon); ?></span> <?php echo esc_html($label); ?>
-                    </button>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
-            </div>
-            <!-- Suggestion Pills -->
-            <?php if (!get_option('nk_chatbot_hide_pills', 0)): ?>
-            <div class="nk-chat-pills">
-                <?php 
-                // Retrieve V6 Pills (JSON)
-                $pills_json = get_option('nk_chatbot_pills_v6');
-                $pills = json_decode($pills_json, true);
-                
-                // Only fallback if never saved
-                if (!is_array($pills)) {
-                   $pills = [
-                        ['label' => 'Product Info', 'query' => 'Details on product purity and testing'],
-                        ['label' => 'Dosing Help', 'query' => 'How much bacteriostatic water should I use?'],
-                        ['label' => 'Research Guide', 'query' => 'Where should I begin my peptide research?']
-                    ];
-                }
-                
-                foreach($pills as $pill): 
-                    $label = isset($pill['label']) ? $pill['label'] : '';
-                    $query = isset($pill['query']) ? $pill['query'] : '';
-                ?>
-                <button class="nk-pill" data-action="dynamic" data-query="<?php echo esc_attr($query); ?>" data-send="false">
-                    <?php echo esc_html($label); ?>
-                </button>
-                <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
-            <!-- Input Area -->
-            <div class="nk-chat-input-area">
-                <input type="text" id="nk-chat-input" placeholder="Message Clinical Assistant..." />
-                <button id="nk-chat-send">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
-            </div>
-            
-            <!-- Footer Branding (Removed as requested) -->
-            <div class="nk-chat-footer"><strong>Note-</strong> This is a beta version. Responses may change.</div>
-        </div>
+        <?php nk_chatbot_render_window_html(); ?>
     </div>
     <?php
 }
 add_action('wp_footer', 'nk_chatbot_render_widget');
+
+// Shortcode to display Chatbot inline
+function nk_chatbot_shortcode_handler($atts) {
+    global $nk_chatbot_shortcode_used;
+    $nk_chatbot_shortcode_used = true;
+    
+    ob_start();
+    ?>
+    <div id="nk-chatbot-container" class="nk-chatbot-inline nk-chatbot-open">
+        <?php nk_chatbot_render_window_html(); ?>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('custom_ai_chatbot', 'nk_chatbot_shortcode_handler');
 
 // AJAX Handler for Chat
 add_action('wp_ajax_nk_chat_response', 'nk_chat_response_handler');
