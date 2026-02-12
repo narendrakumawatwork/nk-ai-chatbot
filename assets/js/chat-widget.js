@@ -118,6 +118,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Global trigger for external buttons/links (Open Chat by class)
+  document.addEventListener("click", (e) => {
+    const trigger = e.target.closest(".open-custom-chatbot");
+    if (trigger) {
+        e.preventDefault();
+        if (container && !container.classList.contains("nk-chatbot-open")) {
+            container.classList.add("nk-chatbot-open");
+        }
+    }
+  });
+
     // Handle Quick Actions & Pills (Dynamic Menu Logic)
     const triggerButtons = document.querySelectorAll('.nk-quick-actions .nk-chip, .nk-chat-pills .nk-pill');
     
